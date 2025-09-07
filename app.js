@@ -1,9 +1,6 @@
 const n = 2000,
 	precision = Math.pow(2.0, 2),
-	//elastic = 1.0 + 1.0,
-	//elastic = 0.95 + 1.0,
 	elastic = 0.75 + 1.0,
-	scale_bbox = false,
 	density = 20;
 
 let zoom = 1.0;
@@ -16,6 +13,7 @@ class body{
 		this.m = r*r * density;
 
 		this.a = new vec(0, 0);
+		this.temp = 0;
 	}
 };
 
@@ -28,7 +26,7 @@ function setup(){
 		const theta = Math.random() * Math.PI * 2.0;
 		const s = Math.sin(theta), c = Math.cos(theta);
 
-		const r = Math.sqrt(Math.random())*100;
+		const r = Math.sqrt(Math.random())*80;
 
 		bodies.push(new body(
 			new vec(c, s).mul(r),
@@ -73,7 +71,11 @@ function draw(){
 		target.merge(bodies[i].p.copy().add(new vec(-bodies[i].r, -bodies[i].r)));
 		target.merge(bodies[i].p.copy().add(new vec(bodies[i].r, bodies[i].r)));
 
-		function dfs(node){
+		let queue = [nodes.length-1];
+
+		for(let p=0; p<queue.length; ++p){
+			const node = nodes[queue[p]];
+
 			if(!target.touch(node.bounds)){
 				const num = node.bounds.max.x+node.bounds.max.y-node.bounds.min.x-node.bounds.min.y;
 				const densq = bodies[i].p.distsq(node.center);
@@ -82,17 +84,20 @@ function draw(){
 					const v = bodies[i].p.copy().sub(node.center);
 					const d = v.magsq(), sd = Math.sqrt(d);
 					bodies[i].a.add(v.copy().mul(-node.mass/d/sd));
-					return;
+					continue;
 				}
 			}
 
 			if(node.left == -1){
 				const j = node.right;
-				if(i == j) return;
+				if(i == j) continue;
 				const v = bodies[i].p.copy().sub(bodies[j].p);
 				const d = v.mag();
 				bodies[i].a.add(v.copy().mul(-bodies[j].m/d/d/d));
 				if(d < bodies[i].r+bodies[j].r-0.001){
+					const gap = Math.max(0, bodies[i].r+bodies[j].r-d-2.25);
+					bodies[i].temp = Math.min(1, bodies[i].temp+gap/4);
+					bodies[j].temp = Math.min(1, bodies[i].temp+gap/4);
 					v.div(d);
 					const d1 = bodies[i].v.dot(v);
 					const d2 = bodies[j].v.dot(v);
@@ -103,36 +108,22 @@ function draw(){
 					bodies[i].p.add(v.copy().mul(d4));
 					bodies[j].p.add(v.copy().mul(-d4));
 				}
-			}else{
-				dfs(nodes[node.left]);
-				dfs(nodes[node.right]);
-			}
+
+			}else queue.push(node.left, node.right);
 		}
-
-		dfs(nodes[nodes.length-1]);
 	}
-
-	const viewport = new aabb();
 
 	for(const b of bodies){
 		b.p.add(b.v.copy().mul(dt));
 		b.v.add(b.a.mul(dt));
 		b.a.x = 0, b.a.y = 0;
-		viewport.merge(b.p.copy().add(new vec(-b.r, -b.r)));
-		viewport.merge(b.p.copy().add(new vec(b.r, b.r)));
 	}
 
 	push();
 
 	translate(width/2, height/2);
 
-	{
-		const sx = (width-20)/(viewport.max.x-viewport.min.x);
-		const sy = (height-20)/(viewport.max.y-viewport.min.y);
-		const s = Math.sqrt(Math.min(sx, sy));
-		if(scale_bbox) scale(s, s);
-		else scale(zoom, zoom);
-	};
+	scale(zoom, zoom);
 
 	if(mouseIsPressed){
 		tran[0] += (mouseX-lm[0])/zoom;
@@ -141,28 +132,30 @@ function draw(){
 
 	lm = [mouseX, mouseY];
 
-	if(scale_bbox) translate(-(viewport.max.x+viewport.min.x)/2,
-		-(viewport.max.y+viewport.min.y)/2);
-	//else translate(-nodes[nodes.length-1].center.x, -nodes[nodes.length-1].center.y);
-	else translate(tran[0], tran[1]);
-	
-	/*
-	fill(225, 100, 100); noStroke();
-	rect(viewport.min.x, viewport.min.y,
-		viewport.max.x-viewport.min.x, viewport.max.y-viewport.min.y);
-	*/
+	translate(tran[0], tran[1]);
 
 	fill(225); noStroke();
 	rect(-width/2, -height/2, width, height);
 
-	fill(50); noStroke();
+	let vel = new vec(0, 0);
 
-	for(const b of bodies)
-		circle(b.p.x, b.p.y, b.r*2);
+	for(const b of bodies){
+		const F = b.temp; b.temp = Math.max(0, b.temp - dt*3);
+		const col = [ 0, 175, 225 ];
+		fill(lerp(50, col[0], F), lerp(50, col[1], F), lerp(50, col[2], F));
+		noStroke(); circle(b.p.x, b.p.y, b.r*2);
+		vel.add(b.v);
+	}
+
+	if(vel.div(bodies.length).mag() > 50){
+		for(const b of bodies){
+			b.v.mul(0.95);
+		}
+	}
 
 	pop();
 
-	if(Date.now() > last_fps + 500){
+	if(Date.now() > last_fps + 200){
 		last_fps = Date.now();
 		fps = Math.round(frameRate()*10)/10;
 	}
