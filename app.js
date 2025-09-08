@@ -22,34 +22,20 @@ let bodies = [];
 function setup(){
 	createCanvas(600, 600);
 
-	for(let i=0; i<n/2; ++i){
+	for(let i=0; i<n; ++i){
 		const theta = Math.random() * Math.PI * 2.0;
 		const s = Math.sin(theta), c = Math.cos(theta);
 
-		const r = Math.sqrt(Math.random())*50;
+		const r = Math.sqrt(Math.random())*80;
 
 		bodies.push(new body(
-			//new vec(c, s).mul(r),
-			new vec(c, s).mul(r).add(new vec(-200, 0)),
-			//new vec(-s, c).mul(r/2.7),
-			new vec(-s, c).mul(r/2.5),
-			1.0 + Math.random(),
-		));
-
-		bodies.push(new body(
-			//new vec(c, s).mul(r),
-			new vec(c, s).mul(r).add(new vec(200, 0)),
-			//new vec(-s, c).mul(r/2.7),
-			new vec(-s, c).mul(r/2.5),
+			new vec(c, s).mul(r),
+			new vec(-s, c).mul(r/2.7),
 			1.0 + Math.random(),
 		));
 	}
 
-	//setTimeout(() => {
-		for(let b of bodies) b.v.add(new vec(25 * (b.p.x < 0 ? 1 : -1), 0));
-	//}, 2000);
-
-	if(0) setTimeout(() => {
+	setTimeout(() => {
 		bodies.push(new body(
 			new vec(300, 300),
 			new vec(-4500, -4500),
