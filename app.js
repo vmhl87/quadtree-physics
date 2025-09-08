@@ -1,4 +1,4 @@
-const n = 2000,
+const n = 1000,
 	precision = Math.pow(2.0, 2),
 	elastic = 0.75 + 1.0,
 	density = 20;
@@ -26,16 +26,30 @@ function setup(){
 		const theta = Math.random() * Math.PI * 2.0;
 		const s = Math.sin(theta), c = Math.cos(theta);
 
-		const r = Math.sqrt(Math.random())*80;
+		const r = Math.sqrt(Math.random())*50;
 
 		bodies.push(new body(
-			new vec(c, s).mul(r),
-			new vec(-s, c).mul(r/2.7),
+			//new vec(c, s).mul(r),
+			new vec(c, s).mul(r).add(new vec(-200, 0)),
+			//new vec(-s, c).mul(r/2.7),
+			new vec(-s, c).mul(r/2.5),
+			1.0 + Math.random(),
+		));
+
+		bodies.push(new body(
+			//new vec(c, s).mul(r),
+			new vec(c, s).mul(r).add(new vec(200, 0)),
+			//new vec(-s, c).mul(r/2.7),
+			new vec(-s, c).mul(r/2.5),
 			1.0 + Math.random(),
 		));
 	}
 
-	setTimeout(() => {
+	//setTimeout(() => {
+		for(let b of bodies) b.v.add(new vec(25 * (b.p.x < 0 ? 1 : -1), 0));
+	//}, 2000);
+
+	if(0) setTimeout(() => {
 		bodies.push(new body(
 			new vec(300, 300),
 			new vec(-4500, -4500),
