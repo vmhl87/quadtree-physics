@@ -1,4 +1,4 @@
-const n = 1000,
+const n = 2000,
 	precision = Math.pow(2.0, 2),
 	elastic = 0.75 + 1.0,
 	density = 20;
@@ -22,7 +22,7 @@ let bodies = [];
 function setup(){
 	createCanvas(600, 600);
 
-	for(let i=4; i<n; ++i){
+	for(let i=0; i<n/2; ++i){
 		const theta = Math.random() * Math.PI * 2.0;
 		const s = Math.sin(theta), c = Math.cos(theta);
 
