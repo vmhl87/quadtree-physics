@@ -1,4 +1,4 @@
-let nodes = [];
+let nodes = [], indices = null;
 
 class bvhnode{
 	constructor(depth){
@@ -36,7 +36,7 @@ function make_bvh(){
 	delete nodes;
 	nodes = [];
 
-	let indices = new Array(bodies.length);
+	if(indices == null) indices = new Array(bodies.length);
 	for(let i=0; i<bodies.length; ++i) indices[i] = i;
 
 	function partition(l, r, depth){

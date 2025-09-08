@@ -22,7 +22,7 @@ let bodies = [];
 function setup(){
 	createCanvas(600, 600);
 
-	for(let i=0; i<n; ++i){
+	for(let i=4; i<n; ++i){
 		const theta = Math.random() * Math.PI * 2.0;
 		const s = Math.sin(theta), c = Math.cos(theta);
 
@@ -101,12 +101,12 @@ function draw(){
 
 			if(!target.touch(node.bounds)){
 				const num = node.bounds.max.x+node.bounds.max.y-node.bounds.min.x-node.bounds.min.y;
-				const densq = bodies[i].p.distsq(node.center);
+				const v = bodies[i].p.copy().sub(node.center);
+				const d = v.magsq();
 
-				if(num*num < precision*densq){
-					const v = bodies[i].p.copy().sub(node.center);
-					const d = v.magsq(), sd = Math.sqrt(d);
-					bodies[i].a.add(v.copy().mul(-node.mass/d/sd));
+				if(num*num < precision*d){
+					const sd = Math.sqrt(d);
+					bodies[i].a.add(v.mul(-node.mass/d/sd));
 					continue;
 				}
 			}
@@ -114,9 +114,12 @@ function draw(){
 			if(node.left == -1){
 				const j = node.right;
 				if(i == j) continue;
+
 				const v = bodies[i].p.copy().sub(bodies[j].p);
 				const d = v.mag();
+
 				bodies[i].a.add(v.copy().mul(-bodies[j].m/d/d/d));
+
 				if(d < bodies[i].r+bodies[j].r-0.001){
 					const gap = Math.max(0, bodies[i].r+bodies[j].r-d-2.25);
 					bodies[i].temp = Math.min(1, bodies[i].temp+gap/4);
