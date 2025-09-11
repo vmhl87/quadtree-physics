@@ -13,6 +13,7 @@ class body{
 		this.m = r*r * density;
 
 		this.a = new vec(0, 0);
+		this.oa = new vec(0, 0);
 		this.temp = 0;
 	}
 };
@@ -140,9 +141,19 @@ function draw(){
 	}
 
 	for(const b of bodies){
+		/* euler
 		b.p.add(b.v.copy().mul(dt));
 		b.v.add(b.a.mul(dt));
 		b.a.x = 0, b.a.y = 0;
+		*/
+		//const v = b.v.copy().add(b.oa.copy().add(b.a).mul(dt/2));
+		//b.v = v;
+		b.v.add(b.oa.copy().add(b.a).mul(dt/2));
+		//const p = b.p.copy().add(b.v.copy().mul(dt)).add(b.a.copy().mul(dt*dt/2));
+		//b.p = p;
+		b.p.add(b.v.copy().mul(dt)).add(b.a.copy().mul(dt*dt/2));
+		b.oa = b.a.copy();
+		b.a.x = 0; b.a.y = 0;
 	}
 
 	push();
